@@ -1,0 +1,661 @@
+openapi: 3.0.0
+info:
+  title: Trullo API
+  version: 1.0.0
+  description: API Documentation
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  # -------------------- AUTH --------------------
+  /auth/sign-up:
+    post:
+      summary: Register a new user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: strongpassword
+                name:
+                  type: string
+                  example: John
+      responses:
+        "200":
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User successfully created
+        "400":
+          description: Validation error or user already exists
+        "500":
+          description: Internal server error
+
+  /auth/sign-in:
+    post:
+      summary: Authenticate a user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: strongpassword
+      responses:
+        "200":
+          description: Successful authentication, returns JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        "400":
+          description: Validation error or user not found
+        "401":
+          description: Password does not match
+        "500":
+          description: Internal server error
+
+  # -------------------- USERS --------------------
+  /users:
+    get:
+      summary: Get all users
+      tags:
+        - Users
+      responses:
+        "200":
+          description: List of all users
+        "500":
+          description: Internal server error
+
+    patch:
+      summary: Update current user's data
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                name:
+                  type: string
+      responses:
+        "200":
+          description: User successfully updated
+        "400":
+          description: Bad request or validation error
+        "500":
+          description: Internal server error
+
+    delete:
+      summary: Delete current user
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User successfully deleted
+        "400":
+          description: Bad request or user not found
+        "500":
+          description: Internal server error
+
+  /users/me:
+    get:
+      summary: Get current user's profile
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Current user profile
+        "400":
+          description: Bad request
+        "404":
+          description: User not found
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User data
+        "400":
+          description: Bad request
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+
+    patch:
+      summary: Update user by ID (admin only)
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                name:
+                  type: string
+      responses:
+        "200":
+          description: User successfully updated
+        "400":
+          description: Bad request
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal server error
+
+    delete:
+      summary: Delete user by ID (admin only)
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User successfully deleted
+        "400":
+          description: Bad request
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal server error
+
+  /users/{id}/projects:
+    get:
+      summary: Get projects of a specific user
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of user projects
+        "400":
+          description: Bad request or user not found
+        "500":
+          description: Internal server error
+
+  /users/{id}/tasks:
+    get:
+      summary: Get tasks assigned to a specific user
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of user tasks
+        "400":
+          description: Bad request or user not found
+        "500":
+          description: Internal server error
+
+  # -------------------- PROJECTS --------------------
+  /projects:
+    post:
+      summary: Create a new project
+      tags:
+        - Projects
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  example: Project Alpha
+                description:
+                  type: string
+                  example: This is a sample project
+      responses:
+        "200":
+          description: Project successfully created
+        "400":
+          description: Invalid data
+        "500":
+          description: Internal server error
+
+    get:
+      summary: Get all projects
+      tags:
+        - Projects
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of projects
+        "500":
+          description: Internal server error
+
+  /projects/{id}:
+    get:
+      summary: Get project by ID
+      tags:
+        - Projects
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Project data
+        "400":
+          description: Project not found
+        "500":
+          description: Internal server error
+
+    patch:
+      summary: Update a project
+      tags:
+        - Projects
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "200":
+          description: Project successfully updated
+        "400":
+          description: Invalid data
+        "500":
+          description: Internal server error
+
+    delete:
+      summary: Delete a project
+      tags:
+        - Projects
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Project successfully deleted
+        "400":
+          description: Project not found
+        "500":
+          description: Internal server error
+
+  /projects/{id}/users:
+    post:
+      summary: Add a user to a project
+      tags:
+        - Project Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  example: user123
+                role:
+                  type: string
+                  enum:
+                    - ADMIN
+                    - USER
+                  example: USER
+      responses:
+        "200":
+          description: User added to project
+        "400":
+          description: Invalid data or user/project not found
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal server error
+
+  /projects/{projectId}/users/{userId}:
+    delete:
+      summary: Remove a user from a project
+      tags:
+        - Project Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User removed from project
+        "400":
+          description: Project or user not found
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal server error
+
+    patch:
+      summary: Edit user's role in a project
+      tags:
+        - Project Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - ADMIN
+                    - USER
+      responses:
+        "200":
+          description: User role updated
+        "400":
+          description: Invalid data or user/project not found
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal server error
+
+  /projects/{id}/tasks:
+    get:
+      summary: Get tasks for a project
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tasks for the project
+        "400":
+          description: Project not found
+        "500":
+          description: Internal server error
+
+  # -------------------- TASKS --------------------
+  /tasks:
+    post:
+      summary: Create a new task
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - projectId
+                - title
+              properties:
+                projectId:
+                  type: string
+                  example: project123
+                title:
+                  type: string
+                  example: Implement login
+                description:
+                  type: string
+                  example: Create login functionality
+                status:
+                  type: string
+                  enum: [TODO, IN_PROGRESS, BlOCKED, DONE]
+                  example: TODO
+                assignedToId:
+                  type: string
+                  example: user123
+      responses:
+        "200":
+          description: Task successfully created
+        "400":
+          description: Invalid data or project not found
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal server error
+
+  /tasks/{id}:
+    get:
+      summary: Get task by ID
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task data
+        "400":
+          description: Task not found
+        "500":
+          description: Internal server error
+
+    patch:
+      summary: Update a task
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [TODO, IN_PROGRESS, BlOCKED, DONE]
+                assignedToId:
+                  type: string
+      responses:
+        "200":
+          description: Task successfully updated
+        "400":
+          description: Invalid data or task not found
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal server error
+
+    delete:
+      summary: Delete a task
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task successfully deleted
+        "400": description

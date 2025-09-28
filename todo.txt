@@ -1,0 +1,29 @@
++--- Auth ---+
+[X] - Sign in 
+[X] - Sign up 
+
++--- Users ---+
+[X] - Create user
+[X] - Update user 
+[X] - Delete user
+[X] - Get all users
+[X] - Get specific user
+[X] - Get user profile (get user by token)
+[X] - Get all specific user's projects
+[X] - Get all specific user's tasks
+
++--- Projects ---+
+[X] - Create project
+[X] - Update project 
+[X] - Delete project
+[X] - Get project
+[X] - Add user to project
+[X] - Delete user from project
+[X] - Edit user role
+[ ] - Get project tasks
+
++--- Tasks ---+
+[ ] - Create task
+[ ] - Update task
+[ ] - Delete task
+[ ] - Assign user to task
