@@ -23,6 +23,7 @@ app.get("/ping", async (req, res) => {
   res.status(200).send("pong");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is up and running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server is up and running on port ${PORT}`);
+// });
+export default app;
